@@ -29,5 +29,11 @@ public class Main {
 
         TransportTask task = new TransportTask(nPost, nPotr, arrPost, arrPotr, prices);
         Worker.work(task);
+        System.out.print("Значение оптимума = ");
+        int opt = 0;
+        for (Cell cell : task.basis) {
+             opt += cell.value*cell.price;
+        }
+        System.out.println(opt);
     }
 }

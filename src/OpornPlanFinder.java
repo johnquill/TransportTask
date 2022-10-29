@@ -6,21 +6,27 @@ public class OpornPlanFinder {
         int j = 0;
         int[] arrPost = task.arrPost.clone();
         int[] arrPotr = task.arrPotr.clone();
-        do {
+        while (true) {
             if (arrPotr[i] < arrPost[j]) {
-                task.values[i][j] = arrPotr[i];
-                arrPotr[i] -= arrPotr[i];
+                task.matr[i][j].value = arrPotr[i];
+                task.basis.add(new Cell(i, j, task.matr[i][j].value, task.matr[i][j].price, true));
+                task.matr[i][j].basis = true;
                 arrPost[j] -= arrPotr[i];
-                task.basis.add(new Cell(i, j, task.values[i][j]));
+                arrPotr[i] -= arrPotr[i];
                 i++;
             } else {
-                task.values[i][j] = arrPost[j];
-                arrPost[j] -= arrPost[j];
+                task.matr[i][j].value = arrPost[j];
+                task.basis.add(new Cell(i, j, task.matr[i][j].value, task.matr[i][j].price, true));
+                task.matr[i][j].basis = true;
                 arrPotr[i] -= arrPost[j];
+                arrPost[j] -= arrPost[j];
                 j++;
             }
-        } while (i != arrPotr.length && j != arrPost.length);
-        if (task.basis.size() < task.nPost + task.nPotr) {
+            if (i == arrPotr.length || j == arrPost.length) {
+                break;
+            }
+        }
+        if (task.basis.size() < task.nPost + task.nPotr - 1) {
             System.out.println("План выражден, я такое решать не умею");
             System.exit(0);
         }
