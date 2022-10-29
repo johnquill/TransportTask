@@ -1,21 +1,27 @@
 import java.util.*;
 
 public class PotentialMethodFinder {
-    public static boolean find(TransportTask task) {
-        countPotentials(task);
-        countValues(task);
-        Worker.printMatr(task);
-        while (isNotOptimum(task)) {
-            recountBasis(task);
-            task.initPotentials();
-            countPotentials(task);
-            countValues(task);
-            Worker.printMatr(task);
-        }
-        return true;
+
+    TransportTask task;
+
+    public PotentialMethodFinder(TransportTask task) {
+        this.task = task;
     }
 
-    private static void recountBasis(TransportTask task) {
+    public void find() {
+        countPotentials();
+        countValues();
+        Worker.printMatr(task);
+        while (isNotOptimum()) {
+            recountBasis();
+            task.initPotentials();
+            countPotentials();
+            countValues();
+            Worker.printMatr(task);
+        }
+    }
+
+    private void recountBasis() {
         Cell start = findMin(task);
         List<Cell> cycle = new ArrayList<>();
         HashMap<Cell, List<Cell>> blockedCells = new HashMap<>();
@@ -27,7 +33,7 @@ public class PotentialMethodFinder {
         changeBasis(task.basis, cycle, min);
     }
 
-    private static void changeBasis(List<Cell> basis, List<Cell> cycle, Cell min) {
+    private void changeBasis(List<Cell> basis, List<Cell> cycle, Cell min) {
         basis.remove(min);
         int minV = min.value;
         for (Cell cell : cycle) {
@@ -36,10 +42,9 @@ public class PotentialMethodFinder {
             }
         }
         cycle.get(0).value = minV;
-        // TODO: 26.10.2022 нужно ли тут изменять значение в базисе
     }
 
-    private static Cell findMinInCycle(List<Cell> cycle) {
+    private Cell findMinInCycle(List<Cell> cycle) {
         int minVal = Integer.MAX_VALUE;
         Cell minCell = null;
         for (Cell cell : cycle) {
@@ -51,14 +56,14 @@ public class PotentialMethodFinder {
         return minCell;
     }
 
-    private static List<Cell> buildCycle(List<Cell> cycle, List<Cell> basis, HashMap<Cell, List<Cell>> blockedCells,
+    private List<Cell> buildCycle(List<Cell> cycle, List<Cell> basis, HashMap<Cell, List<Cell>> blockedCells,
                                          Direction direction) {
         Cell cur = cycle.get(cycle.size()-1);
         for (Cell cell : basis) {
             if (cell != cur && (!blockedCells.containsKey(cur) || !blockedCells.get(cur).contains(cell))) {
                 if (cell.i == cur.i && direction != Direction.J) {
                     if (cell == cycle.get(0)) {
-                        return cycle; // TODO: 26.10.2022 еще какая-то проблема с индексами?
+                        return cycle;
                     } else {
                         cycle.add(cell);
                         return buildCycle(cycle, basis, blockedCells, Direction.J);
@@ -80,7 +85,7 @@ public class PotentialMethodFinder {
         return buildCycle(cycle, basis, blockedCells, resDir);
     }
 
-    private static List<Cell> addCurToBlocked(HashMap<Cell, List<Cell>> blockedCells, List<Cell> cycle, Cell cur) {
+    private List<Cell> addCurToBlocked(HashMap<Cell, List<Cell>> blockedCells, List<Cell> cycle, Cell cur) {
         if (cycle.size() < 2) {
             System.out.println("Не смог построить цикл");
             System.exit(-1);
@@ -94,7 +99,7 @@ public class PotentialMethodFinder {
         return blockedCellsForPrev;
     }
 
-    private static Cell findMin(TransportTask task) {
+    private Cell findMin(TransportTask task) {
         int minVal = 0;
         Cell minCell = null;
         for (int i = 0; i < task.nPotr; i++) {
@@ -108,7 +113,7 @@ public class PotentialMethodFinder {
         return minCell;
     }
 
-    private static void countValues(TransportTask task) {
+    private void countValues() {
         for (int i = 0; i < task.nPotr; i++) {
             for (int j = 0; j < task.nPost; j++) {
                 if (!task.matr[i][j].basis) {
@@ -118,19 +123,19 @@ public class PotentialMethodFinder {
         }
     }
 
-    private static void countPotentials(TransportTask task) {
+    private void countPotentials() {
         int k = 0;
-        while (BasisHandler.isEmptyStr(task.basis, k)) {
+        while (isEmptyStr(task.basis, k)) {
             k++;
         }
         task.potrPotentials[0] = 0;
         boolean f = true;
         while (f) {
-            f = fillPotentials(task);
+            f = fillPotentials();
         }
     }
 
-    private static boolean fillPotentials(TransportTask task) {
+    private boolean fillPotentials() {
         boolean f = false;
         for (Cell cell : task.basis) {
             if (task.postPotentials[cell.j] == Integer.MAX_VALUE) {
@@ -148,7 +153,7 @@ public class PotentialMethodFinder {
         return f;
     }
 
-    private static boolean isNotOptimum(TransportTask task) {
+    private boolean isNotOptimum() {
         for (Cell[] str : task.matr) {
             for (Cell cell : str) {
                 if (cell.value < 0) {
@@ -157,5 +162,14 @@ public class PotentialMethodFinder {
             }
         }
         return false;
+    }
+
+    public boolean isEmptyStr(List<Cell> basis, int i) {
+        for (Cell cell : basis) {
+            if (cell.i == i) {
+                return false;
+            }
+        }
+        return true;
     }
 }
